@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==3.1.12"
+djongo = "*"
+djangorestframework = "==3.13.1"
+django-cors-headers = "*"
+drf-yasg = "*"
+pymongo = "==3.12.1"
+django-environ = "*"
+openpyxl = "*"
+jwt = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
