@@ -11,6 +11,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import exceptions
 from MailTracking.serializers.imagemodelserializer import ImageDeatilsModelSerializer
 from MailTracking.models.imagemodel import ImageDeatilsModel
+from MailTracking.models.mailsendermodel import MailSenderModel
+from MailTracking.serializers.mailsenderserializers import Mailsenderserializer
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -176,3 +178,9 @@ class TrackMailModelViewSet(mixins.ListModelMixin,
             message=f'Image does not exist with Image Id {img_id}'
             Response(message,status=status.HTTP_404_NOT_FOUND)
     
+class MailsenderModelViewset(viewsets.ModelViewSet):
+    queryset=MailSenderModel.objects.all()
+    serializer_class=Mailsenderserializer
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
