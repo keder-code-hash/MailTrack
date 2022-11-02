@@ -14,6 +14,8 @@ from MailTracking.models.imagemodel import ImageDeatilsModel
 from MailTracking.models.mailsendermodel import MailSenderModel
 from MailTracking.serializers.mailsenderserializers import Mailsenderserializer
 
+from mailsender.mail_sender import gmail_send_message
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
@@ -111,7 +113,7 @@ class TrackMailModelViewSet(mixins.ListModelMixin,
     @action(
         methods=["POST"],
         detail=False,
-        url_path=r"sendmail",
+        url_path=r"track",
         serializer_class=None,
     )
     @swagger_auto_schema(manual_parameters=[uid,frm,to,fi,id,img_id])
@@ -181,6 +183,25 @@ class TrackMailModelViewSet(mixins.ListModelMixin,
 class MailsenderModelViewset(viewsets.ModelViewSet):
     queryset=MailSenderModel.objects.all()
     serializer_class=Mailsenderserializer
+    http_method_names=['get','post']
 
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        serializer=self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        mail_sending_details=gmail_send_message(
+            from_mail=serializer.validated_data.get('from_mail'),
+            to_mail=serializer.validated_data.get('to_mail'),
+            subject=serializer.validated_data.get('mail_subject'),
+            mail_body=serializer.validated_data.get('mail_body'),
+        )
+        # {'id': '184398e4c9d0bebf', 'threadId': '184398e4c9d0bebf', 'labelIds': ['UNREAD', 'SENT', 'INBOX']}
+        if mail_sending_details:
+            serializer.validated_data["mail_id"]=mail_sending_details["id"]
+            if "SENT" in mail_sending_details["labelIds"]:
+                serializer.validated_data["mail_sent"]=True
+            serializer.save()
+        else:
+            message=f'Error in sending the mail.'
+            return Response(message,status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.validated_data,status=status.HTTP_400_BAD_REQUEST)

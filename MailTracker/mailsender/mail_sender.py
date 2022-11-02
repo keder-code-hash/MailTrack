@@ -50,54 +50,39 @@ def build_file_part(file):
     msg.add_header('Content-Disposition', 'attachment', filename=filename)
     return msg
 
-def gmail_send_message():
-    """Create and send an email message
-    Print the returned  message id
-    Returns: Message object, including message id
+def gmail_send_message(from_mail=None,to_mail=None,subject=None,mail_body=None,attatchments=None):
 
-    Load pre-authorized user credentials from the environment.
-    TODO(developer) - See https://developers.google.com/identity
-    for guides on implementing OAuth2 for the application.
-    """
-    # creds, _ = google.auth.default()
     if os.path.exists(os.path.join(BASE_DIR,'mailsender','token.json')):
         creds = Credentials.from_authorized_user_file(os.path.join(BASE_DIR,'mailsender','token.json'))
-        print(creds)
     try:
         service = build('gmail', 'v1', credentials=creds)
         message = EmailMessage()
- 
         message.add_header('Content-Type','text/html')
 
+        # attachment_filename = os.path.join(BASE_DIR,'templates/mail_template/base.html')
+        # type_subtype, _ = mimetypes.guess_type(attachment_filename)
+        # maintype, subtype = type_subtype.split('/')
 
-        # attachment
-        attachment_filename = os.path.join(BASE_DIR,'templates/mail_template/base.html')
-        # guessing the MIME type
-        type_subtype, _ = mimetypes.guess_type(attachment_filename)
-        maintype, subtype = type_subtype.split('/')
-
-        with open(attachment_filename, 'rb') as fp:
-            attachment_data = fp.read()
+        # with open(attachment_filename, 'rb') as fp:
+        #     attachment_data = fp.read()
 
 
-        message['To'] = 'kedernath.tint022@gmail.com'
-        message['From'] = 'kedernath.mallick.tint022@gmail.com'
-        message['Subject'] = 'Automated draft'
-        message.set_payload(attachment_data)
+        message['To'] = to_mail
+        message['From'] = from_mail
+        message['Subject'] = subject
+        message.set_payload(mail_body)
+
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
-
         create_message = {
             'raw': encoded_message
         }
-        # pylint: disable=E1101
         send_message = (service.users().messages().send
                         (userId="me", body=create_message).execute())
-        print(F'Message Id: {send_message["id"]}')
     except HttpError as error:
         print(F'An error occurred: {error}')
         send_message = None
     return send_message
+
 
 def gmail_create_draft_with_attachment():
     """Create and insert a draft email with attachment.

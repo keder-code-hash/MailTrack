@@ -5,4 +5,4 @@ class Mailsenderserializer(serializers.ModelSerializer):
     class Meta:
         model=MailSenderModel
         fields="__all__"
-        read_only_field=('_id',)
+        read_only_fields=('_id',)
